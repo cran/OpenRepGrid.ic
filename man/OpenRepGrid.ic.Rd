@@ -6,7 +6,7 @@
 \title{\pkg{OpenRepGrid.ic} -  Interpretive Clustering for Repertory Grids}
 \description{
 The \pkg{OpenRepGrid.ic} package implements \emph{Interpretive Clustering (IC)} 
-as introduced in Burr, King, and Heckmann (2020). The authors describe
+as outlined in \href{https://doi.org/10.1080/14780887.2020.1794088}{Burr, King, and Heckmann (2020)}. The authors describe
 a variant of construct clustering which uses a procedure from graph theory
 called \href{https://en.wikipedia.org/wiki/Clique_problem#Listing_all_maximal_cliques}{maximal cliques enumeration}.
 Given a similarity measure, in our case the number of matching scores between
@@ -38,10 +38,10 @@ x <- read.xlsx(file)            # read grid
 tests <- check_excel_input(x)   # check if input format is correct
 l <- network_graph_images(x, min_clique_size = 3, 
                           show_edges = TRUE, 
-                          min_matches = 7)  # produce images
-file_tmp <- create_excel_output(file, l)         # create Excel file
+                          min_matches = 6)    # produce images
+file_tmp <- create_excel_output(file, l)      # create Excel file
 
-# copy Excel to working dir (commented out to avoid pollution during testing)
+# copy Excel to working dir (commented out to avoid file generation during testing)
 #file.copy(file_tmp, file_out, overwrite = TRUE)  
 
 # calculation results used in network_graph_images
