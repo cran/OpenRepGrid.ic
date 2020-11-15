@@ -1,8 +1,9 @@
 
-# sample grid should be read in correctly 
 
 library(tidyverse)
 library(openxlsx)
+
+# sample grid should be read in correctly 
 
 test_that("Sylvia's grid is read and processed correctly", {
   
@@ -27,8 +28,25 @@ test_that("Sylvia's grid is read and processed correctly", {
 test_that("input file format is checked correctly", {
   
   file <- system.file("extdata", "incorrect_formats.xlsx", package = "OpenRepGrid.ic")
-  x <- read.xlsx(file)
-  tests <- check_excel_input(x)  # check if input format is correct
   
-  expect_false(all(tests$passed))  # all format tests have been passe
+  x <- read.xlsx(file, sheet = "format-01")
+  tests <- check_excel_input(x) 
+  expect_false(all(tests$passed)) 
+  
+  x <- read.xlsx(file, sheet = "format-02")
+  tests <- check_excel_input(x)  
+  expect_false(all(tests$passed)) 
+  
+  x <- read.xlsx(file, sheet = "format-03")
+  tests <- check_excel_input(x)  
+  expect_false(all(tests$passed)) 
+  
+  x <- read.xlsx(file, sheet = "format-04")
+  tests <- check_excel_input(x)  
+  expect_false(all(tests$passed)) 
+  
+  x <- read.xlsx(file, sheet = "format-empty")
+  tests <- check_excel_input(x)  
+  expect_false(all(tests$passed)) 
+  
 })

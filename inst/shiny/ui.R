@@ -30,12 +30,9 @@ suppressWarnings({
     library(glue)
     library(splines)
     library(igraph)
-    # library(visNetwork)
     library(OpenRepGrid.ic)
   })
 })
-
-
 
 
 sidebar_right = rightSidebar(
@@ -70,34 +67,28 @@ sidebar_right = rightSidebar(
 #### _______________________####
 #### HEADER                 ####
 
+pkg_version <- paste0("OpenRepGrid.ic v", packageVersion("OpenRepGrid.ic"))
 
 header <- dashboardHeaderPlus(
-  dropdownMenuOutput("notification_menu"),
+  # dropdownMenuOutput("notification_menu"),
   title = tagList(
-    span(class = "logo-lg",  paste0("OpenRepGrid.ic v", packageVersion("OpenRepGrid.ic"))), 
+    span(class = "logo-lg", "OpenRepGrid.ic"), 
     span(class = "logo-sm", "")
   ),
   fixed = FALSE 
-  # enable_rightsidebar = TRUE
 )
 
 
 #### _______________________####
 #### SIDEBAR                ####
 
-menuSubItem(text, tabName = NULL, href = NULL, newtab = TRUE,
-            icon = shiny::icon("angle-double-right"), selected = NULL)
 
-sidebar <- dashboardSidebar(
-  
-  #hidden(
+sidebar <- dashboardSidebar(  
     sidebarMenu(id = "sidebar",
-        # menuItem("Login", tabName = "tab_login", icon = icon("login")),
         menuItem("Home", tabName = "tab_start", icon = icon("home")),
         menuItem("Method", tabName = "tab_method", icon = icon("info")),
         menuItem("Analysis", tabName = "tab_grid", icon = icon("th"))
     )
-  #)
 )
 
 
@@ -231,21 +222,17 @@ body <- dashboardBody(
       color: #4c5254  !important;
     }
 
+
+  /*
+  .downloadBtn {
+    background: #00c851;
+    color: green;
+  }
+  */
+  
   ")),
   
   tabItems(
-    
-    #### __ LOGIN  ####
-    
-    # tabItem(tabName = "tab_login",
-    #         shinyauthr::loginUI(id = "login", 
-    #                             title = "Please log in",
-    #                             login_title = "Login",
-    
-    #                             user_title = "User",
-    #                             pass_title = "Password",
-    #                             error_message = "Incorrect user or password!")
-    # ),
     
     #### __ START  ####
     
@@ -254,7 +241,9 @@ body <- dashboardBody(
               fluidRow(
                 column(width = 6, 
                    box(width = NULL, 
-                       tags$span(style = "color:grey; font-style: italic", "Please use a recent version of Chrome, Firefox or the Edge browser for optimal performance."),
+                       tags$span(style = "color:grey; font-style: italic", 
+                                 pkg_version, 
+                                 "- Please use a recent version of Chrome, Firefox or the Edge browser for optimal performance."),
                        status = "danger"
                    ),
                    box(width = NULL,
@@ -263,6 +252,7 @@ body <- dashboardBody(
                        tags$a("Interpretive Clustering (IC)", href = "https://doi.org/10.1080/14780887.2020.1794088", target = "_blank"),
                        "method described in",
                        tags$a("Burr, King, and Heckmann (2020).", href = "https://doi.org/10.1080/14780887.2020.1794088", target = "_blank"),
+                       "An introduction to the software is available on", tags$a("YouTube.", href = "https://youtu.be/f9oINYA22Rc", target = "_blank")
                      ),
                      p("Interpretive Clustering is a variant of construct clustering for ", 
                        tags$a("repertory grid", href = "https://en.wikipedia.org/wiki/Repertory_grid", target = "_blank"),
@@ -274,7 +264,7 @@ body <- dashboardBody(
                        "Given a similarity measure, in our case the number of matching scores between two constructs, a network graph of relatedness between constructs is construed.",
                        "A clique is a group of constructs which are all mutually related, given some cut-off criterion for relatedness (e.g. ", HTML("&ge;"), "6 matching scores for a 7 element grid).",
                        "While an offline approach is also described to find the construct cliques, this software automates the procedure.",
-                       "On the left you see the resulting construct cliques for Sylvia's sample grid."
+                       "In the image you can see the resulting construct cliques for Sylvia's sample grid."
                      ),
                      p("Under the entry", tags$em("Method"), "in the left sidebar you will find a step-by-step description of the manual process
                        to generate the construct clusters. To upload and analyse a grid programatically, click on the ", 
@@ -336,6 +326,9 @@ body <- dashboardBody(
                          )
                         )
                       ),
+                     
+                    #______ table -----------------
+                    #
                     # div(id = "grid_box",
                     introBox(data.step = 3, 
                              data.intro = "The table shows the grid data from the Excel file you uploaded.
@@ -364,7 +357,6 @@ body <- dashboardBody(
                           "You can download a valid sample Excel file in the right hand panel and use it as a template."),
                         br(),
                         HTML('<center><img src="excel_grid_format.png" width="85%"></center>')
-                        # img(src = "excel_grid_format.png", align = "center", style = "width: 90%")
                     ))
                     
               ),
@@ -386,6 +378,9 @@ body <- dashboardBody(
                        data.intro = "As you already know, you can upload an Excel file here. 
                                      You may also download a sample file and use it as a template."
                      ),
+                     
+                     #______ settings ----------------
+                     
                      hidden(div(id = "settings_box_1",
                         introBox(
                             box(width = NULL, status = "warning", title = "Grid settings", collapsible = TRUE, collapsed = TRUE, 
@@ -407,27 +402,48 @@ body <- dashboardBody(
                               introBox(data.step = 6, 
                                        data.intro = "Set the minimal number of matches between two construct to consider them 'related'.
                                                      By default it is set to the number of elements minus one.",
-                                  numericInput("par_min_match", "Number of matches for relatedness", value = 6, 2, 20)
+                                  numericInput("par_min_match", "Number of matches for relatedness", value = 6, min = 2, max = 20)
                               ),
                               introBox(data.step = 7, 
                                        data.intro = "Set the minimal number of mutually related construct that form a 'clique'.
                                                      By default the value is set to three constructs.",
-                                       numericInput("par_min_clique_size", "Minimal cliques size", 3, 2, 10)
+                                       numericInput("par_min_clique_size", "Minimal cliques size", value = 3, min = 2, max = 10)
+                              ),
+                              introBox(data.step = 8, 
+                                       data.intro = "Check to draw lines between related constructs.",
+                                       awesomeCheckbox("par_show_edges", "Lines between related constructs", value = TRUE)
+                              ),
+                              introBox(data.step = 9, 
+                                       data.intro = "Check to indicate the direction of a construct relation (positive / negative) by a +/- sign.",
+                                       awesomeCheckbox("par_indicate_direction", "Indicate relation by +/-", value = TRUE)
+                              ),
+                              introBox(data.step = 10, 
+                                       data.intro = "Check to colorize the direction of a construct relation (positive / negative) by red and green color.",
+                                       awesomeCheckbox("par_colorize_direction", "Indicate relation by color", value = TRUE)
+                              ),
+                              
+                              introBox(data.step = 11, 
+                                       data.intro = "Check if you want to get a different color for each clique/cluster.",
+                                       awesomeCheckbox("par_colorize_cliques", "Colorize clusters", value = TRUE)
                               ),
                               # introBox(data.step = 8, 
                               #          data.intro = "Whether to show full or abbreviated construct labels (C1, C2 etc.) in the output graphs.
                               #                        By default full labels are shown.",
                               #          awesomeCheckbox("par_abbr_labels", "Abbreviate construct labels", value = FALSE)
                               # ),
-                              introBox(data.step = 8, 
-                                       data.intro = "Process the grid data and generate an Excel file containing 
-                                                     the results for download.",
-                                  actionButton("btn_process", label = "Process data")
-                               ),
-                              introBox(data.step = 9, 
-                                       data.intro = "After the result file has been created, you can download it here.",
-                                disabled(
-                                 downloadButton(outputId = "btn_download_excel", style = "minimal", color = "primary", label = "Download results")
+                              div(style = "display:inline-block; float:left; margin-right: 10px",
+                                introBox(data.step = 12, 
+                                         data.intro = "Process the grid data and generate an Excel file containing 
+                                                       the results for download.",
+                                    actionButton("btn_process", label = "Process data")
+                                 )
+                              ),
+                              div(style="display:inline-block; float:left",
+                                introBox(data.step = 13, 
+                                         data.intro = "After the result file has been created, you can download it here.",
+                                  disabled(
+                                   downloadButton(outputId = "btn_download_excel", style = "minimal", class = "downloadBtn", label = "Download results")
+                                  )
                                 )
                               )
                           )
@@ -450,7 +466,6 @@ ui <- dashboardPagePlus(
   skin = "red",
   header = header,
   sidebar = sidebar,
-  # rightsidebar = sidebar_right,
   body = body
 )
 

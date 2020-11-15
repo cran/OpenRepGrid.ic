@@ -5,7 +5,7 @@
 #' @param x Data from Excel input file.
 #' @export
 #' 
-check_excel_input <- function(x) 
+check_excel_input_test <- function(x) 
 {
   nms <- names(x)
   nc <- ncol(x)
@@ -13,6 +13,7 @@ check_excel_input <- function(x)
   i_preferred <- nc - 0
   i_right <- nc - 1
   i_ratings <- 2L:(nc - 2)
+  
   
   # preferred --
   
@@ -47,11 +48,11 @@ check_excel_input <- function(x)
   
   # constructs --
   
-  c_left <- stringr::str_trim(x[[i_left]])
-  c_right <- stringr::str_trim(x[[i_right]])
-  c4_res <- all(c_left != "") #&& all(c_right != "")
+  c_left <- stringr::str_trim(x[[i_left]]) %>% tail(-1)
+  c_right <- stringr::str_trim(x[[i_right]]) %>% tail(-1)
+  c4_res <- all(c_left != "") && !any(is.na(c_left))
   c4 <- list(
-    assert = "Left poles must be non-empty strings (right poles may contain empty strings, though this is not recommended)",
+    assert = "Left poles start in column 1, row 2 and must all be non-empty strings (right poles may contain empty strings, though this is not recommended)",
     passed = c4_res,
     error = ifelse(c4_res, "", "Some left poles contain empty strings")
   )
@@ -78,9 +79,10 @@ check_excel_input <- function(x)
   )
   
   # meta --
+
   rating_lowest <- names(x)[i_left] %>% as.numeric
   rating_highest <- names(x)[i_right] %>% as.numeric
-  c7_res <- (rating_lowest < rating_highest) || is.na(rating_lowest) || is.na(rating_highest)
+  c7_res <- !( (rating_lowest > rating_highest) || is.na(rating_lowest) || is.na(rating_highest) )
   c7 <- list(
     assert = "Meta data for highest and lowest rating values is given",
     passed = c7_res,
@@ -89,11 +91,45 @@ check_excel_input <- function(x)
   
   l <- list(c1, c2, c3, c4, c5, c6, c7) %>%
            lapply(as.data.frame)
-  do.call(rbind, l)
+  tests <- do.call(rbind, l)
   
+  # if some test cannot be properly executed and yields NA e.g. because of some data oddity, 
+  # we throw a general fallback error
+  use_fallback <- any(is.na(tests$passed))
+  if (use_fallback) {
+    fallback_error <- data.frame(
+      assert = "All grid format tests work.", 
+      passed = FALSE, 
+      error = "One or more Excel format tests could not be executed. The reason is unknown. Please double check the Excel grid format for correctness."
+    )  
+    return(fallback_error)
+  }
+  
+  tests
   #lapply(l, `class<-`, c("test", "list"))
 }
 
+
+#' Check if Excel input file contains valid data
+#' 
+#' @param x Data from Excel input file.
+#' @export
+#' 
+check_excel_input <- function(x) 
+{
+  tests <- tryCatch(
+    check_excel_input_test(x), 
+    error = function(e) {
+      data.frame(
+        assert = "Excel file tests can be executed without error.", 
+        passed = FALSE, 
+        error = "When testing your Excel file format for correctness, the program crashed. The reason is unknown. Most likely, there is a problem in the Excel file you uploaded. Please check the Excel grid format for correctness."
+      )  
+    }
+  )
+  tests
+}
+  
 
 # print.test <- function(x)
 # {
@@ -119,10 +155,14 @@ create_excel_output <- function(file, data = list())
   D <- data$D
   cliques_list <- data$cliques_list
   clique_lists_full_names <- data$clique_lists_full_names
+  
   img_all_constructs <- data$img_all_constructs
   img_all_constructs_full_labels <- data$img_all_constructs_full_labels
+  img_all_constructs_bold_poles <- data$img_all_constructs_bold_poles
   img_cliques_only <- data$img_cliques_only
   img_cliques_only_full_labels <- data$img_cliques_only_full_labels
+  img_cliques_only_bold_poles <- data$img_cliques_only_bold_poles
+  
   min_clique_size <- data$min_clique_size
   min_matches <- data$min_matches
   
@@ -259,6 +299,8 @@ create_excel_output <- function(file, data = list())
   
   row <- row + 2
 
+  # row 1: full labels
+  
   i2 <- row
   start_col <- 1
   writeData(wb, sheet, "Figure 1a: Network diagram for all constructs (full labels)", startRow = i2, startCol = start_col)
@@ -275,6 +317,8 @@ create_excel_output <- function(file, data = list())
   writeData(wb, sheet, "Colored hull indicates a clique", startRow = i2 + 2, startCol = start_col)
   addStyle(wb, sheet, style = style_italic, gridExpand = TRUE, rows = i2 + 1:2, cols = start_col)
   insertImage(wb, sheet, img_cliques_only_full_labels, width = 20, height = 20, units = "cm", startRow = i2 + 4, startCol = start_col)
+  
+  # row 2: construct numbers as labels
   
   row <- row + 45
   i2 <- row
@@ -293,6 +337,28 @@ create_excel_output <- function(file, data = list())
   writeData(wb, sheet, "Colored hull indicates a clique", startRow = i2 + 2, startCol = start_col)
   addStyle(wb, sheet, style = style_italic, gridExpand = TRUE, rows = i2 + 1:2, cols = start_col) 
   insertImage(wb, sheet, img_cliques_only, width = 20, height = 20, units = "cm", startRow = i2 + 4, startCol = start_col)
+  
+  # row 3: related poles in bold
+  
+  row <- row + 45
+  i2 <- row
+  
+  start_col <- 1
+  writeData(wb, sheet, "Figure 3a: Network diagram for all constructs (full labels + related poles in bold)", startRow = i2, startCol = start_col)
+  addStyle(wb, sheet, style = style_bold, gridExpand = TRUE, rows = i2, cols = start_col)
+  writeData(wb, sheet, "Lines represent relatedness of constructs - Bold poles are related", startRow = i2 + 1, startCol = start_col)
+  writeData(wb, sheet, "Colored hull indicates a clique", startRow = i2 + 2, startCol = start_col)
+  addStyle(wb, sheet, style = style_italic, gridExpand = TRUE, rows = i2 + 1:2, cols = start_col)
+  insertImage(wb, sheet, img_all_constructs_bold_poles, width = 20, height = 20, units = "cm", startRow = i2 + 4, startCol = start_col)
+  
+  start_col <- 13
+  writeData(wb, sheet, "Figure 3b: Network diagram for constructs inside cliques only (full labels + related poles in bold)", startRow = i2, startCol = start_col)
+  addStyle(wb, sheet, style = style_bold, gridExpand = TRUE, rows = i2, cols = start_col) 
+  writeData(wb, sheet, "Lines represent relatedness of constructs - Bold poles are related", startRow = i2 + 1, startCol = start_col)
+  writeData(wb, sheet, "Colored hull indicates a clique", startRow = i2 + 2, startCol = start_col)
+  addStyle(wb, sheet, style = style_italic, gridExpand = TRUE, rows = i2 + 1:2, cols = start_col) 
+  insertImage(wb, sheet, img_cliques_only_bold_poles, width = 20, height = 20, units = "cm", startRow = i2 + 4, startCol = start_col)
+  
   
   tmp_file <- tempfile(fileext = ".xlsx")
   saveWorkbook(wb, tmp_file, overwrite = TRUE)
