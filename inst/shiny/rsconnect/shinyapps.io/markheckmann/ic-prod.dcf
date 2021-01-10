@@ -1,0 +1,12 @@
+name: ic-prod
+title: ic-prod
+username:
+account: markheckmann
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3190099
+bundleId: 3916094
+url: https://markheckmann.shinyapps.io/ic-prod/
+when: 1606573373.4578
+asMultiple: FALSE
+asStatic: FALSE

@@ -47,7 +47,6 @@ server <- function(input, output, session)
   hide("down_btn")  
   
 
-
   #### .                       ####
   #### _______________________ ####
   #### UPLOAD ####
@@ -227,14 +226,18 @@ server <- function(input, output, session)
     if (hide_preferred) {
       column_defs <- c(column_defs, list(list(visible = FALSE, targets = i_preferred - 1)))
     }
-      
+    
     dt <- DT::datatable(x, rownames = FALSE, colnames = nms, 
                         options = list(
                           headerCallback = header_callback, #JS(headerCallback),
                           paging = FALSE,
                           ordering = FALSE,
                           dom = 't',
-                          columnDefs = column_defs
+                          columnDefs = column_defs,
+                          initComplete = DT::JS(             # change column header size along with cells
+                            paste0("function(settings, json) {",
+                            "$(this.api().table().header()).css({'font-size': '", grid_font_size, "pt'});",
+                            "}"))
                         )
     )  %>%
       formatStyle(c("0"), valueColumns = "preferred",
@@ -296,10 +299,13 @@ server <- function(input, output, session)
 
     min_matches <- input$par_min_match
     min_clique_size <- input$par_min_clique_size
+    align_poles <- input$par_align_poles
+    valence_prefix <- input$par_valence_prefix
     show_edges <- input$par_show_edges
     indicate_direction <- input$par_indicate_direction
     colorize_direction <- input$par_colorize_direction
     colorize_cliques <- input$par_colorize_cliques
+    label_max_length <- input$par_label_max_length
     
     withProgress(message = 'Creating Excel file: ', value = 0, min = 0, max = 2,
     {
@@ -307,6 +313,9 @@ server <- function(input, output, session)
                                 min_clique_size = min_clique_size, 
                                 min_matches = min_matches,
                                 show_edges = show_edges, 
+                                align_poles = align_poles,
+                                valence_prefix = valence_prefix,
+                                label_max_length = label_max_length,
                                 indicate_direction = indicate_direction,
                                 colorize_direction = colorize_direction,
                                 colorize_cliques = colorize_cliques)

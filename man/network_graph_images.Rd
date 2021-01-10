@@ -14,7 +14,10 @@ network_graph_images(
   indicate_direction = show_edges,
   colorize_direction = TRUE,
   colorize_cliques = TRUE,
+  colorize_poles = TRUE,
+  align_poles = TRUE,
   alpha = 0.1,
+  valence_prefix = FALSE,
   border_default = "#987824",
   fill_default = "#00000008",
   image_border_color = grey(0.6),
@@ -41,7 +44,15 @@ applied if \code{show_edges = TRUE}.}
 
 \item{colorize_cliques}{Draw cliques in different colors? (default \code{TRUE}).}
 
+\item{colorize_poles}{Colorize positive/negative/neutral poles as red, green,
+and gray respectively (default \code{TRUE}).}
+
+\item{align_poles}{Align preferred poles on the same side.}
+
 \item{alpha}{Alpha color value for cliques fillings (default \code{.1}).}
+
+\item{valence_prefix}{Add (+/-) pole prefix to indicate preference. Empty
+means no preference.}
 
 \item{border_default, fill_default}{Default border and fill color of polygon
 encircling clique constructs. Used when \code{colorize_cliques} is \code{FALSE}. Use
