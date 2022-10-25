@@ -5,7 +5,7 @@
 \alias{OpenRepGrid.ic}
 \title{\pkg{OpenRepGrid.ic} -  Interpretive Clustering for Repertory Grids}
 \description{
-The \pkg{OpenRepGrid.ic} package implements \emph{Interpretive Clustering (IC)} 
+The \pkg{OpenRepGrid.ic} package implements \emph{Interpretive Clustering (IC)}
 as outlined in Burr, King, and Heckmann (2020). The authors describe
 a variant of construct clustering which uses a procedure from graph theory
 called \href{https://en.wikipedia.org/wiki/Clique_problem#Listing_all_maximal_cliques}{maximal cliques enumeration}.
@@ -14,11 +14,11 @@ two constructs, a network graph of relatedness between constructs is
 construed. A clique is a group of constructs which are all mutually related,
 given some cut-off criterion for relatedness (e.g. 6 matching scores in a
 grid with 7 elements). While the paper also describes an offline approach to identify
-the construct cliques, this software automates the process. Under the hood, 
-the package uses the \code{igraph} package for clique identification. 
+the construct cliques, this software automates the process. Under the hood,
+the package uses the \code{igraph} package for clique identification.
 
-The package also contains a shiny based UI you can start via the function 
-\code{ic()}. Visit \url{http://ic.openrepgrid.org} for an online version. 
+The package also contains a shiny based UI you can start via the function
+\code{ic()}. Visit \url{http://ic.openrepgrid.org} for an online version.
 An introduction to the software is also available on \href{https://youtu.be/f9oINYA22Rc}{YouTube}.
 Below you find an example of how to process a repgrid in an Excel
 file using code only.
@@ -41,9 +41,7 @@ l <- network_graph_images(x, min_clique_size = 3,
                           show_edges = TRUE, 
                           min_matches = 6)    # produce images
 file_tmp <- create_excel_output(file, l)      # create Excel file
-
-# copy Excel to working dir (commented out to avoid file generation during testing)
-#file.copy(file_tmp, file_out, overwrite = TRUE)  
+# file.show(file_tmp)  # not run during tests
 
 # open images saved as temp files (as shown in output Excel file)
 file.show(l$img_all_constructs)
@@ -62,7 +60,7 @@ s
 
 }
 \references{
-Burr, V. King, N. & Heckmann, M. (2020) The qualitative analysis of repertory grid data: Interpretive Clustering, 
+Burr, V. King, N. & Heckmann, M. (2020) The qualitative analysis of repertory grid data: Interpretive Clustering,
     Qualitative Research in Psychology, \doi{10.1080/14780887.2020.1794088}
 }
 \keyword{OpenRepGrid.ic}

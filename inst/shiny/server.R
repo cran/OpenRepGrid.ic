@@ -1,8 +1,8 @@
-#////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////////////////////////
 #
-#                     server
+#                                   SERVER
 #
-#////////////////////////////////////////////////////
+#//////////////////////////////////////////////////////////////////////////////////////////
 
 library(shiny)
 library(shinyjs)
@@ -51,21 +51,37 @@ server <- function(input, output, session)
   #### _______________________ ####
   #### UPLOAD ####
   
-  # upload grid
+  # __ UPLOAD FILE ----
+  
   observeEvent(input$excel_input, 
   {
      req(input$excel_input)
      in_file <- input$excel_input
      if (is.null(in_file))
        return(NULL)
+     rv$file_path <- in_file$datapath   # needed as load_sample_data does not populate input$excel_input
+     rv$file_name <- in_file$name
      rv$data <- openxlsx::read.xlsx(in_file$datapath)
      hide("down_btn")
      disable("btn_download_excel")
-    
      # rv$data_status <- NULL  # set back data status
      rv$number_of_uploads <- rv$number_of_uploads + 1
-   })
+  })
 
+  
+  # __ LOAD SAMPLE ----
+  
+  observeEvent(input$load_sample_data, 
+  {
+    path <- system.file("extdata", "sylvia.xlsx", package = "OpenRepGrid.ic")
+    rv$file_path <- path 
+    rv$file_name <- basename(path)
+    rv$data <- openxlsx::read.xlsx(path)
+    hide("down_btn")
+    disable("btn_download_excel")
+    rv$number_of_uploads <- rv$number_of_uploads + 1
+  })
+  
   
   #### .                       ####
   #### _______________________ ####
@@ -73,19 +89,19 @@ server <- function(input, output, session)
   
 
   output$box_no_elements <- renderInfoBox({
-    req(input$excel_input)
+    req(rv$data)
     infoBox("Elements", ncol(rv$data) - 3, icon = icon("gem"), width = 3)
   })
   
   
   output$box_no_constructs <- renderInfoBox({
-    req(input$excel_input)
+    req(rv$data)  
     infoBox("Constructs", nrow(rv$data), icon = icon("comment"), width = 3)
   })
   
   
   output$box_no_missing <- renderInfoBox({
-    req(input$excel_input)
+    req(rv$data)
     x <- rv$data
     nc <- ncol(x)
     i_ratings <- 2L:(nc - 2)
@@ -100,7 +116,6 @@ server <- function(input, output, session)
   # the flag 'data_status' is needed so other processes can use the info
   observeEvent(rv$data, {
     x <- rv$data
-    cat("\ncheck data")
     if (is.null(x)) {
       rv$data_status <- "empty"
     } else {
@@ -122,7 +137,7 @@ server <- function(input, output, session)
     # rv$data_status
     rv$number_of_uploads # trigger when data is changed
     
-    # initialize settings after grid has been succesfully read in
+    # initialize settings after grid has been successfully read in
     if (rv$data_status == "passed") {
       n_elements <- rv$no_of_elements
       updateNumericInput(session, "par_min_match", value = n_elements - 1, min = 2, max = n_elements)
@@ -196,13 +211,12 @@ server <- function(input, output, session)
     # all test were passed
     cat("\nall tests passed")
     hide("error_box")
-    show("success_box")
     show("down_btn")
     show("settings_box_1")
     show("settings_box_2")
     show("tour_box")
+    show("success_box")
     hide("excel_info_box")
-    # hide("grid_box")
     
     nms <- names(x) %>% str_replace_all("\\.", " ")
     
@@ -229,12 +243,12 @@ server <- function(input, output, session)
     
     dt <- DT::datatable(x, rownames = FALSE, colnames = nms, 
                         options = list(
-                          headerCallback = header_callback, #JS(headerCallback),
+                          headerCallback = header_callback, # JS(headerCallback),
                           paging = FALSE,
                           ordering = FALSE,
                           dom = 't',
                           columnDefs = column_defs,
-                          initComplete = DT::JS(             # change column header size along with cells
+                          initComplete = DT::JS(            # change column header size along with cells
                             paste0("function(settings, json) {",
                             "$(this.api().table().header()).css({'font-size': '", grid_font_size, "pt'});",
                             "}"))
@@ -257,8 +271,6 @@ server <- function(input, output, session)
   
   output$dt_grid <- renderDataTable(
   {
-    #req(rv$data)
-    #req(input$excel_input)
     data_status <- rv$data_status
     
     if (is.null(data_status) || isTRUE(data_status == "empty")) {
@@ -293,10 +305,11 @@ server <- function(input, output, session)
   
   observeEvent(input$btn_process, 
   {
-    req(input$excel_input$datapath)
+    # req(input$excel_input$datapath)
+    req(rv$data)
     disable("btn_download_excel")
-    file <- input$excel_input$datapath
-
+    # file <- input$excel_input$datapath
+    file <- rv$file_path
     min_matches <- input$par_min_match
     min_clique_size <- input$par_min_clique_size
     align_poles <- input$par_align_poles
@@ -325,10 +338,10 @@ server <- function(input, output, session)
       Sys.sleep(.2)
      })
 
-    # allow download if excel has been created and saved succesfully
+    # allow download if excel has been created and saved successfully
     if (file.exists(rv$excel_out_path)) {
       enable("btn_download_excel")
-      sendSweetAlert(session, title = "Calculation succesful", 
+      sendSweetAlert(session, title = "Calculation successful", 
                      text = "You can now download the Excel file containing the results by clicking on the 'Download results' button", 
                      type = "success",
                      btn_labels = "Ok", btn_colors = "#3085d6")
@@ -339,7 +352,8 @@ server <- function(input, output, session)
   output$btn_download_excel <- downloadHandler(
     
     filename = function() {
-      filename <- input$excel_input$name
+      # filename <- input$excel_input$name
+      filename <- rv$file_name
       str_replace(filename, ".xlsx", "_CLIQUES.xlsx")
     },
     content = function(file) {
